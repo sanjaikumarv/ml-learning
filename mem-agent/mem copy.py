@@ -9,6 +9,7 @@ from openai import OpenAI
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 USER_ID = "sanjai"
 
 if not OPENAI_API_KEY:
@@ -41,6 +42,9 @@ config = {
             "port": 6333,
         },
     },
+    "graph_store": {"provider": "neo4j", "config": {
+        "url":
+    }},
 }
 
 mem_client = Memory.from_config(config)

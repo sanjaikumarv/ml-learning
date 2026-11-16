@@ -10,9 +10,14 @@ load_dotenv()
 client = OpenAI()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+NEO_USERNAME = os.getenv("NEO_USERNAME")
+NEO_PASSWORD = os.getenv("NEO_PASSWORD")
+NEO_COLLECTION_STRING = os.getenv("NEO_COLLECTION_STRING")
+
 
 config = {
     "version": "v1.1",
+    "enable_graph": True,
     "embedder": {
         "provider": "openai",
         "config": {
@@ -34,6 +39,14 @@ config = {
             "port": 6333,
         },
     },
+    "graph_store": {
+        "provider": "neo4j",
+        "config": {
+            "url": NEO_COLLECTION_STRING,
+            "username": NEO_USERNAME,
+            "password": NEO_PASSWORD,
+        },
+    },
 }
 
 mem_client = Memory.from_config(config)
@@ -43,7 +56,7 @@ while True:
     search_memory = mem_client.search(query=user_query, filters={"user_id": "sanjai"})
 
     memories = [
-        f"ID: {mem.get("id")}\nMemory: {mem.get("memory")} "
+        f"ID: {mem.get('id')}\nMemory: {mem.get('memory')} "
         for mem in search_memory.get("results")
     ]
 

@@ -1,4 +1,5 @@
 import json
+import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import requests
@@ -10,6 +11,10 @@ load_dotenv()
 client = OpenAI()
 
 
+def run_command(cmd: str):
+    return os.system(cmd)
+
+
 def get_weather(city: str):
     url = f"https://wttr.in/{city.lower()}?format=%C+%t"
     response = requests.get(url)
@@ -19,7 +24,7 @@ def get_weather(city: str):
         return f"Sorry could not retrieve the weather in {city}."
 
 
-available_tools = {"get_weather": get_weather}
+available_tools = {"get_weather": get_weather, "run_command": run_command}
 
 
 SYSTEM_PROMPT = """
@@ -39,6 +44,7 @@ SYSTEM_PROMPT = """
 
     Available tools:
     - get_weather(city: str): Takes city name as input string and returns the weather info about city
+    - run_command(cmd: str): Takes system command as input string and execute the command in the user's system ans returns the output of the command.
 
     Example 1:
     START: Hey , Can you solve 2 + 3 * 5 / 10
@@ -77,8 +83,7 @@ class MyOutputFormat(BaseModel):
     )
     tool: Optional[str] = Field(
         None,
-        description="The ID of the tool to call.\
-        ",
+        description="The ID of the tool to call.",
     )
     input: Optional[str] = Field(None, description="The input params of the tool")
 
@@ -98,10 +103,10 @@ while True:
         message_history.append({"role": "assistant", "content": raw_result})
 
         parsed_result = response.choices[0].message.parsed
-        if parsed_result.Step == "START":
+        if parsed_result.step == "START":
             print("🔥", parsed_result.content)
             continue
-        if parsed_result.Step == "TOOL":
+        if parsed_result.step == "TOOL":
             tool_to_call = parsed_result.tool
             tool_input = parsed_result.input
             print(f"🔥{tool_to_call} ({tool_input})")
@@ -122,10 +127,10 @@ while True:
                 }
             )
             continue
-        if parsed_result.Step == "PLAN":
+        if parsed_result.step == "PLAN":
             print("🚀", parsed_result.content)
             continue
-        if parsed_result.Step == "OUTPUT":
+        if parsed_result.step == "OUTPUT":
             print("📤", parsed_result.content)
             break
 
